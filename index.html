@@ -11,25 +11,127 @@
       sizes="32x32"
       href="./images/favicon-32x32.png"
     />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="./dist/app.js" defer></script>
 
     <title>Frontend Mentor | Todo app</title>
-
-    <!-- Feel free to remove these styles or customise in your own stylesheet 👍 -->
-    <style>
-      .attribution {
-        font-size: 11px;
-        text-align: center;
-      }
-      .attribution a {
-        color: hsl(228, 45%, 44%);
-      }
-    </style>
+    <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    Todo
-
-    <!-- Add dynamic number -->
-    items left All Active Completed Clear Completed Drag and drop to reorder
-    list
+    <main>
+      <section class="section">
+        <div class="section__title-wrapper">
+          <h1 class="section__title">Todo</h1>
+          <button class="button-theme">
+            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26">
+              <path
+                class="moon-icon"
+                fill="#FFF"
+                fill-rule="evenodd"
+                d="M13 0c.81 0 1.603.074 2.373.216C10.593 1.199 7 5.43 7 10.5 7 16.299 11.701 21 17.5 21c2.996 0 5.7-1.255 7.613-3.268C23.22 22.572 18.51 26 13 26 5.82 26 0 20.18 0 13S5.82 0 13 0z"
+              />
+            </svg>
+            <svg
+              class="sun-icon hidden"
+              xmlns="http://www.w3.org/2000/svg"
+              width="26"
+              height="26"
+            >
+              <path
+                fill="#FFF"
+                fill-rule="evenodd"
+                d="M13 21a1 1 0 011 1v3a1 1 0 11-2 0v-3a1 1 0 011-1zm-5.657-2.343a1 1 0 010 1.414l-2.121 2.121a1 1 0 01-1.414-1.414l2.12-2.121a1 1 0 011.415 0zm12.728 0l2.121 2.121a1 1 0 01-1.414 1.414l-2.121-2.12a1 1 0 011.414-1.415zM13 8a5 5 0 110 10 5 5 0 010-10zm12 4a1 1 0 110 2h-3a1 1 0 110-2h3zM4 12a1 1 0 110 2H1a1 1 0 110-2h3zm18.192-8.192a1 1 0 010 1.414l-2.12 2.121a1 1 0 01-1.415-1.414l2.121-2.121a1 1 0 011.414 0zm-16.97 0l2.121 2.12A1 1 0 015.93 7.344L3.808 5.222a1 1 0 011.414-1.414zM13 0a1 1 0 011 1v3a1 1 0 11-2 0V1a1 1 0 011-1z"
+              />
+            </svg>
+          </button>
+        </div>
+        <form class="section__input-wrapper">
+          <div class="input-circle"></div>
+          <input id="task" type="text" placeholder="Create a new todo..." />
+        </form>
+        <ul class="section__content">
+          <!-- <li class="task-row">
+            <button class="button-task"></button>
+            <button class="button-content-text">
+              <p class="content-text finished-task">Jog around park 3x</p>
+            </button>
+            <button class="button-delete">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18">
+                <path
+                  fill="#494C6B"
+                  fill-rule="evenodd"
+                  d="M16.97 0l.708.707L9.546 8.84l8.132 8.132-.707.707-8.132-8.132-8.132 8.132L0 16.97l8.132-8.132L0 .707.707 0 8.84 8.132 16.971 0z"
+                />
+              </svg>
+            </button>
+          </li>
+          <li class="task-row">
+            <button class="button-task"></button>
+            <button class="button-content-text">
+              <p class="content-text">Jog around park 3x</p>
+            </button>
+            <button class="button-delete">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18">
+                <path
+                  fill="#494C6B"
+                  fill-rule="evenodd"
+                  d="M16.97 0l.708.707L9.546 8.84l8.132 8.132-.707.707-8.132-8.132-8.132 8.132L0 16.97l8.132-8.132L0 .707.707 0 8.84 8.132 16.971 0z"
+                />
+              </svg>
+            </button>
+          </li>
+          <li class="task-row">
+            <button class="button-task"></button>
+            <button class="button-content-text">
+              <p class="content-text">Jog around park 3x</p>
+            </button>
+            <button class="button-delete">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18">
+                <path
+                  fill="#494C6B"
+                  fill-rule="evenodd"
+                  d="M16.97 0l.708.707L9.546 8.84l8.132 8.132-.707.707-8.132-8.132-8.132 8.132L0 16.97l8.132-8.132L0 .707.707 0 8.84 8.132 16.971 0z"
+                />
+              </svg>
+            </button>
+          </li> -->
+        </ul>
+        <div class="content__footer">
+          <span class="content_footer-items">No tasks</span>
+          <div class="content__footer-states desktop">
+            <button class="button-states all active-btn">All</button>
+            <button class="button-states active">Active</button>
+            <button class="button-states completed">Completed</button>
+          </div>
+          <button class="button-clear">Clear completed</button>
+        </div>
+        <div class="content__footer-states mobile">
+          <button class="button-states all active-btn">All</button>
+          <button class="button-states active">Active</button>
+          <button class="button-states completed">Completed</button>
+        </div>
+        <p class="instructions">Drag and drop to reorder</p>
+      </section>
+      <div class="landing">
+        <picture>
+          <source
+            id="mobile-img"
+            media="(max-width: 767px)"
+            srcset="./images/bg-mobile-light.jpg"
+          />
+          <source
+            id="desktop-img"
+            media="(min-width: 768px)"
+            srcset="./images/bg-desktop-light.jpg"
+          />
+          <img class="landing__image" src="./images/bg-mobile-light.jpg" />
+        </picture>
+      </div>
+    </main>
   </body>
 </html>
