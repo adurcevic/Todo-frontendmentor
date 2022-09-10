@@ -9,13 +9,26 @@ const mobileImg = document.getElementById("mobile-img") as HTMLSourceElement;
 const desktopImg = document.getElementById("desktop-img") as HTMLSourceElement;
 const image = document.querySelector(".landing__image") as HTMLImageElement;
 
+const changeColors = (...colors: string[]): void => {
+  const [c1, c2, c3, c4, c5, c6] = colors;
+
+  root.style.setProperty("--bg-primary", c1);
+  root.style.setProperty("--color-primary", c2);
+  root.style.setProperty("--color-secondary", c3);
+  root.style.setProperty("--text-primary", c4);
+  root.style.setProperty("--text-secondary", c5);
+  root.style.setProperty("--text-secondary-hover", c6);
+};
+
 const darkTheme = (): void => {
-  root.style.setProperty("--bg-primary", "#161722");
-  root.style.setProperty("--color-primary", "#25273c");
-  root.style.setProperty("--color-secondary", "#4d5066");
-  root.style.setProperty("--text-primary", "#cacde8");
-  root.style.setProperty("--text-secondary", "#393a4c");
-  root.style.setProperty("--text-secondary-hover", "#e4e5f1");
+  changeColors(
+    "#161722",
+    "#25273c",
+    "#4d5066",
+    "#cacde8",
+    "#393a4c",
+    "#e4e5f1"
+  );
   sunIcon.classList.remove("hidden");
   moonIcon.classList.add("hidden");
   mobileImg.setAttribute("srcset", "./images/bg-mobile-dark.jpg");
@@ -24,12 +37,14 @@ const darkTheme = (): void => {
 };
 
 const lightTheme = (): void => {
-  root.style.setProperty("--bg-primary", "#e4e5f1");
-  root.style.setProperty("--color-primary", "#fafafa");
-  root.style.setProperty("--color-secondary", "#e4e5f1");
-  root.style.setProperty("--text-primary", "#484b6a");
-  root.style.setProperty("--text-secondary", "#d2d3db");
-  root.style.setProperty("--text-secondary-hover", "#9394a5");
+  changeColors(
+    "#e4e5f1",
+    "#fafafa",
+    "#e4e5f1",
+    "#484b6a",
+    "#d2d3db",
+    "#9394a5"
+  );
   sunIcon.classList.add("hidden");
   moonIcon.classList.remove("hidden");
   mobileImg.setAttribute("srcset", "./images/bg-mobile-light.jpg");
@@ -86,30 +101,23 @@ class Task {
     this.callSelectedTasks();
   }
 
-  public showActiveTasks() {
-    this.filteredTasks(this.activeTasks, TaskStatus.ACTIVE);
-    if (this.visibleTasks !== TaskStatus.ACTIVE)
-      this.visibleTasks = TaskStatus.ACTIVE;
-    this.showNumOfTasks(this.activeTasks);
+  public showSelectedTasks(status: TaskVisibility) {
+    if (status === "all") {
+      this.filteredTasks(this.allTasks);
+      this.showNumOfTasks(this.allTasks);
+    }
+    if (status === TaskStatus.ACTIVE) {
+      this.filteredTasks(this.activeTasks, TaskStatus.ACTIVE);
+      this.showNumOfTasks(this.activeTasks);
+    }
+    if (status === TaskStatus.COMPLETED) {
+      this.filteredTasks(this.completedTasks, TaskStatus.COMPLETED);
+      this.showNumOfTasks(this.completedTasks);
+    }
+    if (this.visibleTasks !== status) this.visibleTasks = status;
     this.addCompletedTaskBtn();
     this.addBtnDelete();
-  }
-
-  public showCompletedTasks() {
-    this.filteredTasks(this.completedTasks, TaskStatus.COMPLETED);
-    if (this.visibleTasks !== TaskStatus.COMPLETED)
-      this.visibleTasks = TaskStatus.COMPLETED;
-    this.showNumOfTasks(this.completedTasks);
-    this.addCompletedTaskBtn();
-    this.addBtnDelete();
-  }
-
-  public showAllTasks() {
-    this.filteredTasks(this.allTasks);
-    if (this.visibleTasks !== "all") this.visibleTasks = "all";
-    this.showNumOfTasks(this.allTasks);
-    this.addBtnDelete();
-    this.addCompletedTaskBtn();
+    this.addDraggItems();
   }
 
   public clearCompletedTasks() {
@@ -122,14 +130,17 @@ class Task {
   }
 
   private callSelectedTasks() {
-    if (this.visibleTasks === "all") this.showAllTasks();
-    if (this.visibleTasks === TaskStatus.ACTIVE) this.showActiveTasks();
-    if (this.visibleTasks === TaskStatus.COMPLETED) this.showCompletedTasks();
+    if (this.visibleTasks === "all") this.showSelectedTasks("all");
+    if (this.visibleTasks === TaskStatus.ACTIVE)
+      this.showSelectedTasks(TaskStatus.ACTIVE);
+    if (this.visibleTasks === TaskStatus.COMPLETED)
+      this.showSelectedTasks(TaskStatus.COMPLETED);
   }
+
   private insertTask(validate: ValidateTask): any {
-    return `<li data-status=${validate.status} data-taskId=${
-      validate.taskId
-    } class="task-row">
+    return `<li draggable="true" data-task=${validate.taskName} data-status=${
+      validate.status
+    } data-taskId=${validate.taskId} class="task-row">
     <button id=${
       validate.status === TaskStatus.ACTIVE ? null : "checked-btn"
     } class="button-task">
@@ -175,6 +186,64 @@ class Task {
       })
     );
     this.taskSection.innerHTML = tasksArr.toString().replaceAll(",", "");
+  }
+
+  private addDraggItems(): void {
+    const draggableItems = document.querySelectorAll(".task-row");
+
+    const getDragAfterElement = (y: any) => {
+      const draggableElements = [
+        ...this.taskSection.querySelectorAll(".task-row:not(.dragging)"),
+      ];
+
+      const returnedEl: any = draggableElements.reduce(
+        (closest, child) => {
+          const box = child.getBoundingClientRect();
+          const offset = y - box.top - box.height / 2;
+          if (offset < 0 && offset > closest.offset) {
+            return { offset: offset, element: child };
+          } else {
+            return closest;
+          }
+        },
+        { offset: Number.NEGATIVE_INFINITY }
+      );
+      return returnedEl.element;
+    };
+
+    draggableItems.forEach((draggable) => {
+      draggable.addEventListener("dragstart", () => {
+        draggable.classList.add("dragging");
+      });
+      draggable.addEventListener("dragend", () => {
+        draggable.classList.remove("dragging");
+        const arrOrder = [...this.taskSection.childNodes] as HTMLElement[];
+        let changedArr: ValidateTask[] = [];
+        arrOrder.forEach((el) => {
+          const pEl = el.querySelector(".content-text") as HTMLParagraphElement;
+          changedArr.push({
+            taskId: el.dataset.taskid as string,
+            taskName: pEl.textContent as string,
+            status: el.dataset.status as TaskStatus,
+          });
+        });
+        if (this.visibleTasks === "all") this.allTasks = changedArr;
+        if (this.visibleTasks === TaskStatus.ACTIVE)
+          this.activeTasks = changedArr;
+        if (this.visibleTasks === TaskStatus.COMPLETED)
+          this.completedTasks = changedArr;
+      });
+    });
+
+    this.taskSection.addEventListener("dragover", (event: MouseEvent) => {
+      event.preventDefault();
+      const afterElement = getDragAfterElement(event.clientY);
+      console.log(afterElement);
+      const draggable = document.querySelector(".dragging") as HTMLLIElement;
+      if (afterElement != null) {
+        this.taskSection.insertBefore(draggable, afterElement);
+      }
+    });
   }
 
   private addBtnDelete(): void {
@@ -300,15 +369,15 @@ const checkShownTasks = (
 };
 
 allTasksBtn.addEventListener("click", () => {
-  app.showAllTasks();
+  app.showSelectedTasks("all");
   checkShownTasks(allTasksBtn, activeTasksBtn, finishedTasksBtn);
 });
 activeTasksBtn.addEventListener("click", () => {
-  app.showActiveTasks();
+  app.showSelectedTasks(TaskStatus.ACTIVE);
   checkShownTasks(activeTasksBtn, allTasksBtn, finishedTasksBtn);
 });
 finishedTasksBtn.addEventListener("click", () => {
-  app.showCompletedTasks();
+  app.showSelectedTasks(TaskStatus.COMPLETED);
   checkShownTasks(finishedTasksBtn, allTasksBtn, activeTasksBtn);
 });
 
