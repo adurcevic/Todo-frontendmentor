@@ -1,4 +1,10 @@
 "use strict";
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
 const themeBtn = document.querySelector(".button-theme");
 const root = document.querySelector(":root");
 const moonIcon = document.querySelector(".moon-icon");
@@ -43,6 +49,17 @@ const switchTheme = () => {
     }
 };
 themeBtn.addEventListener("click", switchTheme);
+function autobind(_, _2, descriptor) {
+    const originalMethod = descriptor.value;
+    const adjDescriptor = {
+        configurable: true,
+        get() {
+            const boundFn = originalMethod.bind(this);
+            return boundFn;
+        },
+    };
+    return adjDescriptor;
+}
 var TaskStatus;
 (function (TaskStatus) {
     TaskStatus["ACTIVE"] = "active";
@@ -61,7 +78,29 @@ class Task {
             taskId: validate.taskId,
             status: validate.status,
         });
-        this.callSelectedTasks();
+        const el = this.insertTask({ taskName: validate.taskName,
+            taskId: validate.taskId,
+            status: validate.status, });
+        if (this.visibleTasks === "all") {
+            this.taskSection.insertAdjacentHTML("beforeend", el);
+            this.showNumOfTasks(this.allTasks);
+            this.addDraggItems();
+        }
+        if (this.visibleTasks === TaskStatus.ACTIVE) {
+            this.taskSection.insertAdjacentHTML("beforeend", el);
+            const activeTasksArr = this.allTasks.filter(task => task.status === TaskStatus.ACTIVE);
+            this.activeTasks = activeTasksArr;
+            this.showNumOfTasks(this.activeTasks);
+            this.addDraggItems();
+        }
+        const tasksUl = [...this.taskSection.childNodes];
+        const liEl = tasksUl.find(el => el.dataset.taskid === validate.taskId);
+        const btnTask = liEl.querySelector(".button-task");
+        const btnText = liEl.querySelector(".button-content-text");
+        const btnDelete = liEl.querySelector(".button-delete");
+        btnTask.addEventListener("click", this.toggleFinishActiveTask.bind(this));
+        btnText.addEventListener("click", this.toggleFinishActiveTask.bind(this));
+        btnDelete.addEventListener("click", this.deleteTask.bind(this));
     }
     showSelectedTasks(status) {
         if (status === "all") {
@@ -78,31 +117,31 @@ class Task {
         }
         if (this.visibleTasks !== status)
             this.visibleTasks = status;
-        this.addCompletedTaskBtn();
-        this.addBtnDelete();
         this.addDraggItems();
     }
     clearCompletedTasks() {
         this.completedTasks = [];
         const clearedTasks = this.allTasks.filter((el) => el.status === TaskStatus.ACTIVE);
         this.allTasks = clearedTasks;
-        this.callSelectedTasks();
-    }
-    callSelectedTasks() {
-        if (this.visibleTasks === "all")
-            this.showSelectedTasks("all");
-        if (this.visibleTasks === TaskStatus.ACTIVE)
-            this.showSelectedTasks(TaskStatus.ACTIVE);
+        if (this.visibleTasks === "all") {
+            const shownTasks = [...this.taskSection.childNodes];
+            shownTasks.forEach(el => {
+                if (el.dataset.status === TaskStatus.COMPLETED)
+                    el.remove();
+            });
+            this.allTasks = this.allTasks.filter(el => el.status !== TaskStatus.COMPLETED);
+            this.showNumOfTasks(this.allTasks);
+        }
         if (this.visibleTasks === TaskStatus.COMPLETED)
             this.showSelectedTasks(TaskStatus.COMPLETED);
     }
     insertTask(validate) {
-        return `<li draggable="true" data-task=${validate.taskName} data-status=${validate.status} data-taskId=${validate.taskId} class="task-row">
+        return `<li draggable="true" data-status=${validate.status} data-taskId=${validate.taskId} class="task-row">
     <button id=${validate.status === TaskStatus.ACTIVE ? null : "checked-btn"} class="button-task">
     <svg id="check-icon" class=${validate.status === TaskStatus.ACTIVE ? "hidden" : null} xmlns="http://www.w3.org/2000/svg" width="11" height="9"><path fill="none" stroke="#FFF" stroke-width="2" d="M1 4.304L3.696 7l6-6"/></svg>
     </button>
-    <button class="button-content-text">
-      <p id=${validate.status === TaskStatus.ACTIVE ? null : "crossed-text"} class="content-text">${validate.taskName}</p>
+    <button id=${validate.status === TaskStatus.ACTIVE ? null : "crossed-text"} class="button-content-text">
+      <p class="content-text">${validate.taskName}</p>
     </button>
     <button class="button-delete">
       <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18">
@@ -129,6 +168,16 @@ class Task {
             status: task.status,
         }));
         this.taskSection.innerHTML = tasksArr.toString().replaceAll(",", "");
+        const btnCheckTask = [...document.querySelectorAll(".button-task")];
+        const btnCheckText = [
+            ...document.querySelectorAll(".button-content-text"),
+        ];
+        const btnDeleteTask = [
+            ...document.querySelectorAll(".button-delete"),
+        ];
+        btnCheckTask.forEach(btnEl => btnEl.addEventListener("click", this.toggleFinishActiveTask.bind(this)));
+        btnCheckText.forEach(btnEl => btnEl.addEventListener("click", this.toggleFinishActiveTask.bind(this)));
+        btnDeleteTask.forEach(btnEl => btnEl.addEventListener("click", this.deleteTask.bind(this)));
     }
     addDraggItems() {
         const draggableItems = document.querySelectorAll(".task-row");
@@ -175,64 +224,71 @@ class Task {
         this.taskSection.addEventListener("dragover", (event) => {
             event.preventDefault();
             const afterElement = getDragAfterElement(event.clientY);
-            console.log(afterElement);
             const draggable = document.querySelector(".dragging");
             if (afterElement != null) {
                 this.taskSection.insertBefore(draggable, afterElement);
             }
         });
     }
-    addBtnDelete() {
-        const btnDeleteTask = [
-            ...document.querySelectorAll(".button-delete"),
-        ];
-        btnDeleteTask.forEach((btn) => btn.addEventListener("click", (event) => {
-            const arrEl = event.composedPath();
-            const liEl = arrEl.find((el) => el.className === "task-row");
-            const id = liEl.dataset.taskid;
-            const filteredArr = this.allTasks.filter((task) => task.taskId !== id);
+    deleteTask(event) {
+        const arrEl = event.composedPath();
+        const liEl = arrEl.find((el) => el.className === "task-row");
+        const id = liEl.dataset.taskid;
+        const filteredArr = this.allTasks.filter((task) => task.taskId !== id);
+        this.allTasks = filteredArr;
+        liEl.remove();
+        if (this.visibleTasks === "all") {
+            this.allTasks = this.allTasks.filter((task) => task.taskId !== id);
             this.allTasks = filteredArr;
-            this.callSelectedTasks();
-        }));
+            this.showNumOfTasks(this.allTasks);
+        }
+        if (this.visibleTasks === TaskStatus.ACTIVE) {
+            this.activeTasks = this.activeTasks.filter((task) => task.taskId !== id);
+            this.showNumOfTasks(this.activeTasks);
+        }
+        if (this.visibleTasks === TaskStatus.COMPLETED) {
+            this.completedTasks = this.completedTasks.filter((task) => task.taskId !== id);
+            this.showNumOfTasks(this.completedTasks);
+        }
     }
-    addCompletedTaskBtn() {
-        const btnCheckTask = [...document.querySelectorAll(".button-task")];
-        const btnCheckText = [
-            ...document.querySelectorAll(".button-content-text"),
-        ];
-        const switchingTaskStatus = (event) => {
-            const arrEl = event.composedPath();
-            const liEl = arrEl.find((el) => el.className === "task-row");
-            const arrOfChildEl = [...liEl.childNodes];
-            const btnCheck = arrOfChildEl.find((el) => el.className === "button-task");
-            const arrOfChildBtnCheck = [...btnCheck.childNodes];
-            const checkSvg = arrOfChildBtnCheck.find((el) => el.id === "check-icon");
-            const btnCheckText = arrOfChildEl.find((el) => el.className === "button-content-text");
-            if (liEl.dataset.status === TaskStatus.ACTIVE) {
-                checkSvg.classList.remove("hidden");
-                liEl.dataset.status = TaskStatus.COMPLETED;
-                btnCheck.id = "checked-btn";
-                btnCheckText.id = "crossed-text";
-                const task = this.allTasks.find((task) => task.taskId === liEl.dataset.taskid);
-                task.status = TaskStatus.COMPLETED;
+    toggleFinishActiveTask(event) {
+        const arrEl = event.composedPath();
+        const liEl = arrEl.find((el) => el.className === "task-row");
+        const arrOfChildEl = [...liEl.childNodes];
+        const btnCheck = arrOfChildEl.find((el) => el.className === "button-task");
+        const arrOfChildBtnCheck = [...btnCheck.childNodes];
+        const checkSvg = arrOfChildBtnCheck.find((el) => el.id === "check-icon");
+        const btnCheckText = arrOfChildEl.find((el) => el.className === "button-content-text");
+        if (liEl.dataset.status === TaskStatus.ACTIVE) {
+            liEl.dataset.status = TaskStatus.COMPLETED;
+            checkSvg.classList.remove("hidden");
+            btnCheck.id = "checked-btn";
+            btnCheckText.id = "crossed-text";
+            const task = this.allTasks.find((taskEl) => taskEl.taskId === liEl.dataset.taskid);
+            task.status = TaskStatus.COMPLETED;
+            if (this.visibleTasks === TaskStatus.ACTIVE) {
+                liEl.remove();
+                const filteredArr = this.activeTasks.filter((task) => task.taskId !== liEl.dataset.taskid);
+                this.activeTasks = filteredArr;
+                this.showNumOfTasks(this.activeTasks);
             }
-            else if (liEl.dataset.status === TaskStatus.COMPLETED) {
-                liEl.dataset.status = TaskStatus.ACTIVE;
-                checkSvg.classList.add("hidden");
-                btnCheck.id = "";
-                btnCheckText.id = "";
-                const task = this.allTasks.find((task) => task.taskId === liEl.dataset.taskid);
-                task.status = TaskStatus.ACTIVE;
+        }
+        else {
+            liEl.dataset.status = TaskStatus.ACTIVE;
+            checkSvg.classList.add("hidden");
+            btnCheck.id = "";
+            btnCheckText.id = "";
+            const task = this.allTasks.find((task) => task.taskId === liEl.dataset.taskid);
+            task.status = TaskStatus.ACTIVE;
+            if (this.visibleTasks === TaskStatus.COMPLETED) {
+                liEl.remove();
+                const filteredArr = this.completedTasks.filter((task) => task.taskId !== liEl.dataset.taskid);
+                this.completedTasks = filteredArr;
+                this.showNumOfTasks(this.completedTasks);
             }
-            this.callSelectedTasks();
-        };
-        btnCheckTask.forEach((btn) => {
-            btn.addEventListener("click", switchingTaskStatus);
-        });
-        btnCheckText.forEach((btn) => {
-            btn.addEventListener("click", switchingTaskStatus);
-        });
+        }
     }
+    ;
     showNumOfTasks(wantedTasks) {
         const itemsLeft = document.querySelector(".content_footer-items");
         itemsLeft.textContent =
@@ -242,8 +298,15 @@ class Task {
         return true;
     }
 }
+__decorate([
+    autobind
+], Task.prototype, "deleteTask", null);
+__decorate([
+    autobind
+], Task.prototype, "toggleFinishActiveTask", null);
 const app = new Task();
 const inputTask = document.querySelector("form");
+const inputEl = inputTask.querySelector(".task");
 inputTask.addEventListener("submit", (event) => {
     event.preventDefault();
     const taskId = Math.random().toString();
@@ -255,9 +318,9 @@ inputTask.addEventListener("submit", (event) => {
     });
     inputValue.value = "";
 });
-const allTasksBtn = document.querySelector(".all");
-const activeTasksBtn = document.querySelector(".active");
-const finishedTasksBtn = document.querySelector(".completed");
+const [allBtn1, allBtn2] = [...document.querySelectorAll(".all")];
+const [activeBtn1, activeBtn2] = [...document.querySelectorAll(".active")];
+const [finishedBtn1, finishedBtn2] = [...document.querySelectorAll(".completed")];
 const checkShownTasks = (activeBtn, inactiveBtn1, inactiveBtn2) => {
     if (!activeBtn.classList.contains("active-btn"))
         activeBtn.classList.add("active-btn");
@@ -266,17 +329,35 @@ const checkShownTasks = (activeBtn, inactiveBtn1, inactiveBtn2) => {
     if (inactiveBtn2.classList.contains("active-btn"))
         inactiveBtn2.classList.remove("active-btn");
 };
-allTasksBtn.addEventListener("click", () => {
+allBtn1.addEventListener("click", () => {
     app.showSelectedTasks("all");
-    checkShownTasks(allTasksBtn, activeTasksBtn, finishedTasksBtn);
+    checkShownTasks(allBtn1, activeBtn1, finishedBtn1);
+    inputEl.removeAttribute("disabled");
 });
-activeTasksBtn.addEventListener("click", () => {
+allBtn2.addEventListener("click", () => {
+    app.showSelectedTasks("all");
+    checkShownTasks(allBtn2, activeBtn2, finishedBtn2);
+    inputEl.removeAttribute("disabled");
+});
+activeBtn1.addEventListener("click", () => {
     app.showSelectedTasks(TaskStatus.ACTIVE);
-    checkShownTasks(activeTasksBtn, allTasksBtn, finishedTasksBtn);
+    checkShownTasks(activeBtn1, allBtn1, finishedBtn1);
+    inputEl.removeAttribute("disabled");
 });
-finishedTasksBtn.addEventListener("click", () => {
+activeBtn2.addEventListener("click", () => {
+    app.showSelectedTasks(TaskStatus.ACTIVE);
+    checkShownTasks(activeBtn2, allBtn2, finishedBtn2);
+    inputEl.removeAttribute("disabled");
+});
+finishedBtn1.addEventListener("click", () => {
     app.showSelectedTasks(TaskStatus.COMPLETED);
-    checkShownTasks(finishedTasksBtn, allTasksBtn, activeTasksBtn);
+    checkShownTasks(finishedBtn1, allBtn1, activeBtn1);
+    inputEl.setAttribute("disabled", "");
+});
+finishedBtn2.addEventListener("click", () => {
+    app.showSelectedTasks(TaskStatus.COMPLETED);
+    checkShownTasks(finishedBtn2, allBtn2, activeBtn2);
+    inputEl.setAttribute("disabled", "");
 });
 const clearCompletedBtn = document.querySelector(".button-clear");
 clearCompletedBtn.addEventListener("click", () => {

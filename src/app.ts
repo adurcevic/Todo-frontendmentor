@@ -68,6 +68,18 @@ const switchTheme = (): void => {
 themeBtn.addEventListener("click", switchTheme);
 
 // TASK CREATION
+function autobind(_: any, _2: string, descriptor: PropertyDescriptor) {
+  const originalMethod = descriptor.value;
+  const adjDescriptor: PropertyDescriptor = {
+    configurable: true,
+    get() {
+      const boundFn = originalMethod.bind(this);
+      return boundFn;
+    },
+  };
+  return adjDescriptor;
+}
+
 enum TaskStatus {
   ACTIVE = "active",
   COMPLETED = "completed",
@@ -98,7 +110,30 @@ class Task {
       taskId: validate.taskId,
       status: validate.status,
     });
-    this.callSelectedTasks();
+   const el = this.insertTask({ taskName: validate.taskName,
+      taskId: validate.taskId,
+      status: validate.status,})
+
+      if(this.visibleTasks === "all") {
+        this.taskSection.insertAdjacentHTML("beforeend", el);
+        this.showNumOfTasks(this.allTasks);
+        this.addDraggItems();
+        }
+      if(this.visibleTasks === TaskStatus.ACTIVE) {
+        this.taskSection.insertAdjacentHTML("beforeend", el);
+        const activeTasksArr = this.allTasks.filter(task => task.status === TaskStatus.ACTIVE )
+        this.activeTasks = activeTasksArr
+        this.showNumOfTasks(this.activeTasks);
+        this.addDraggItems();
+        }
+        const tasksUl = [...this.taskSection.childNodes] as HTMLElement[];
+        const liEl = tasksUl.find(el => el.dataset.taskid === validate.taskId) as HTMLLIElement;
+        const btnTask = liEl.querySelector(".button-task") as HTMLButtonElement;
+        const btnText = liEl.querySelector(".button-content-text") as HTMLButtonElement;
+        const btnDelete = liEl.querySelector(".button-delete") as HTMLButtonElement;
+        btnTask.addEventListener("click", this.toggleFinishActiveTask.bind(this));
+        btnText.addEventListener("click", this.toggleFinishActiveTask.bind(this));
+        btnDelete.addEventListener("click", this.deleteTask.bind(this));
   }
 
   public showSelectedTasks(status: TaskVisibility) {
@@ -115,8 +150,6 @@ class Task {
       this.showNumOfTasks(this.completedTasks);
     }
     if (this.visibleTasks !== status) this.visibleTasks = status;
-    this.addCompletedTaskBtn();
-    this.addBtnDelete();
     this.addDraggItems();
   }
 
@@ -126,19 +159,20 @@ class Task {
       (el) => el.status === TaskStatus.ACTIVE
     );
     this.allTasks = clearedTasks;
-    this.callSelectedTasks();
-  }
-
-  private callSelectedTasks() {
-    if (this.visibleTasks === "all") this.showSelectedTasks("all");
-    if (this.visibleTasks === TaskStatus.ACTIVE)
-      this.showSelectedTasks(TaskStatus.ACTIVE);
+    if (this.visibleTasks === "all") {
+     const shownTasks = [...this.taskSection.childNodes] as HTMLElement[];
+     shownTasks.forEach(el => {
+      if(el.dataset.status === TaskStatus.COMPLETED) el.remove();
+     })
+     this.allTasks = this.allTasks.filter(el => el.status !== TaskStatus.COMPLETED);
+     this.showNumOfTasks(this.allTasks);
+    }
     if (this.visibleTasks === TaskStatus.COMPLETED)
       this.showSelectedTasks(TaskStatus.COMPLETED);
   }
 
   private insertTask(validate: ValidateTask): any {
-    return `<li draggable="true" data-task=${validate.taskName} data-status=${
+    return `<li draggable="true" data-status=${
       validate.status
     } data-taskId=${validate.taskId} class="task-row">
     <button id=${
@@ -148,10 +182,10 @@ class Task {
       validate.status === TaskStatus.ACTIVE ? "hidden" : null
     } xmlns="http://www.w3.org/2000/svg" width="11" height="9"><path fill="none" stroke="#FFF" stroke-width="2" d="M1 4.304L3.696 7l6-6"/></svg>
     </button>
-    <button class="button-content-text">
-      <p id=${
-        validate.status === TaskStatus.ACTIVE ? null : "crossed-text"
-      } class="content-text">${validate.taskName}</p>
+    <button id=${
+      validate.status === TaskStatus.ACTIVE ? null : "crossed-text"
+    } class="button-content-text">
+      <p class="content-text">${validate.taskName}</p>
     </button>
     <button class="button-delete">
       <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18">
@@ -186,6 +220,17 @@ class Task {
       })
     );
     this.taskSection.innerHTML = tasksArr.toString().replaceAll(",", "");
+    const btnCheckTask: any[] = [...document.querySelectorAll(".button-task")];
+    const btnCheckText: any[] = [
+    ...document.querySelectorAll(".button-content-text"),
+  ];
+  const btnDeleteTask: any[] = [
+    ...document.querySelectorAll(".button-delete"),
+  ];
+
+  btnCheckTask.forEach(btnEl => btnEl.addEventListener("click", this.toggleFinishActiveTask.bind(this)))
+  btnCheckText.forEach(btnEl => btnEl.addEventListener("click", this.toggleFinishActiveTask.bind(this)))
+  btnDeleteTask.forEach(btnEl => btnEl.addEventListener("click", this.deleteTask.bind(this)))
   }
 
   private addDraggItems(): void {
@@ -238,7 +283,6 @@ class Task {
     this.taskSection.addEventListener("dragover", (event: MouseEvent) => {
       event.preventDefault();
       const afterElement = getDragAfterElement(event.clientY);
-      console.log(afterElement);
       const draggable = document.querySelector(".dragging") as HTMLLIElement;
       if (afterElement != null) {
         this.taskSection.insertBefore(draggable, afterElement);
@@ -246,31 +290,33 @@ class Task {
     });
   }
 
-  private addBtnDelete(): void {
-    const btnDeleteTask: any[] = [
-      ...document.querySelectorAll(".button-delete"),
-    ];
-    btnDeleteTask.forEach((btn) =>
-      btn.addEventListener("click", (event: Event) => {
-        const arrEl: any[] = event.composedPath();
-        const liEl = arrEl.find(
-          (el) => el.className === "task-row"
-        ) as HTMLLIElement;
-        const id = liEl.dataset.taskid;
-        const filteredArr = this.allTasks.filter((task) => task.taskId !== id);
-        this.allTasks = filteredArr;
-        this.callSelectedTasks();
-      })
-    );
+  @autobind
+  private deleteTask(event: Event): void {
+    const arrEl: any[] = event.composedPath();
+    const liEl = arrEl.find(
+      (el) => el.className === "task-row"
+    ) as HTMLLIElement;
+    const id = liEl.dataset.taskid;
+    const filteredArr = this.allTasks.filter((task) => task.taskId !== id);
+    this.allTasks = filteredArr;
+    liEl.remove();
+    if (this.visibleTasks === "all") {
+      this.allTasks = this.allTasks.filter((task) => task.taskId !== id);
+    this.allTasks = filteredArr;
+      this.showNumOfTasks(this.allTasks);
+    }
+    if (this.visibleTasks === TaskStatus.ACTIVE) { 
+      this.activeTasks = this.activeTasks.filter((task) => task.taskId !== id);
+      this.showNumOfTasks(this.activeTasks);
+    }
+    if (this.visibleTasks === TaskStatus.COMPLETED) {
+      this.completedTasks = this.completedTasks.filter((task) => task.taskId !== id);
+      this.showNumOfTasks(this.completedTasks);
   }
+}
 
-  private addCompletedTaskBtn(): void {
-    const btnCheckTask: any[] = [...document.querySelectorAll(".button-task")];
-    const btnCheckText: any[] = [
-      ...document.querySelectorAll(".button-content-text"),
-    ];
-
-    const switchingTaskStatus = (event: Event) => {
+@autobind
+  private toggleFinishActiveTask(event: Event): void {
       const arrEl: any[] = event.composedPath();
       const liEl = arrEl.find(
         (el) => el.className === "task-row"
@@ -287,15 +333,21 @@ class Task {
         (el) => el.className === "button-content-text"
       ) as HTMLButtonElement;
       if (liEl.dataset.status === TaskStatus.ACTIVE) {
-        checkSvg.classList.remove("hidden");
         liEl.dataset.status = TaskStatus.COMPLETED;
+        checkSvg.classList.remove("hidden");
         btnCheck.id = "checked-btn";
         btnCheckText.id = "crossed-text";
         const task = this.allTasks.find(
-          (task) => task.taskId === liEl.dataset.taskid
+          (taskEl) => taskEl.taskId === liEl.dataset.taskid
         ) as ValidateTask;
         task.status = TaskStatus.COMPLETED;
-      } else if (liEl.dataset.status === TaskStatus.COMPLETED) {
+        if (this.visibleTasks === TaskStatus.ACTIVE) {  
+          liEl.remove();
+          const filteredArr = this.activeTasks.filter((task) => task.taskId !== liEl.dataset.taskid);
+          this.activeTasks = filteredArr;
+          this.showNumOfTasks(this.activeTasks);
+        }
+      } else  {
         liEl.dataset.status = TaskStatus.ACTIVE;
         checkSvg.classList.add("hidden");
         btnCheck.id = "";
@@ -304,17 +356,15 @@ class Task {
           (task) => task.taskId === liEl.dataset.taskid
         ) as ValidateTask;
         task.status = TaskStatus.ACTIVE;
+        if (this.visibleTasks === TaskStatus.COMPLETED) {  
+          liEl.remove();
+          const filteredArr = this.completedTasks.filter((task) => task.taskId !== liEl.dataset.taskid);
+          this.completedTasks = filteredArr;
+          this.showNumOfTasks(this.completedTasks);
+        }
       }
-      this.callSelectedTasks();
-    };
 
-    btnCheckTask.forEach((btn) => {
-      btn.addEventListener("click", switchingTaskStatus);
-    });
-    btnCheckText.forEach((btn) => {
-      btn.addEventListener("click", switchingTaskStatus);
-    });
-  }
+    };
 
   private showNumOfTasks(wantedTasks: ValidateTask[]): boolean {
     const itemsLeft = document.querySelector(
@@ -335,6 +385,7 @@ const app = new Task();
 
 // Rendering Tasks on submit
 const inputTask = document.querySelector("form") as HTMLFormElement;
+const inputEl = inputTask.querySelector(".task") as HTMLInputElement;
 
 inputTask.addEventListener("submit", (event: Event) => {
   event.preventDefault();
@@ -349,36 +400,57 @@ inputTask.addEventListener("submit", (event: Event) => {
 });
 
 // Showing different tasks
-const allTasksBtn = document.querySelector(".all") as HTMLButtonElement;
-const activeTasksBtn = document.querySelector(".active") as HTMLButtonElement;
-const finishedTasksBtn = document.querySelector(
+const [allBtn1, allBtn2] = [...document.querySelectorAll(".all")] as HTMLButtonElement[];
+const [activeBtn1, activeBtn2] = [...document.querySelectorAll(".active")] as HTMLButtonElement[];
+const [finishedBtn1, finishedBtn2] = [...document.querySelectorAll(
   ".completed"
-) as HTMLButtonElement;
+)] as HTMLButtonElement[];
 
 const checkShownTasks = (
   activeBtn: HTMLButtonElement,
   inactiveBtn1: HTMLButtonElement,
-  inactiveBtn2: HTMLButtonElement
-): void => {
+  inactiveBtn2: HTMLButtonElement) =>
+{
   if (!activeBtn.classList.contains("active-btn"))
     activeBtn.classList.add("active-btn");
   if (inactiveBtn1.classList.contains("active-btn"))
     inactiveBtn1.classList.remove("active-btn");
-  if (inactiveBtn2.classList.contains("active-btn"))
-    inactiveBtn2.classList.remove("active-btn");
+    if (inactiveBtn2.classList.contains("active-btn"))
+      inactiveBtn2.classList.remove("active-btn");
 };
 
-allTasksBtn.addEventListener("click", () => {
+
+allBtn1.addEventListener("click", () => {
   app.showSelectedTasks("all");
-  checkShownTasks(allTasksBtn, activeTasksBtn, finishedTasksBtn);
+  checkShownTasks(allBtn1, activeBtn1, finishedBtn1);
+  inputEl.removeAttribute("disabled");
 });
-activeTasksBtn.addEventListener("click", () => {
+allBtn2.addEventListener("click", () => {
+  app.showSelectedTasks("all");
+  checkShownTasks(allBtn2, activeBtn2, finishedBtn2);
+  inputEl.removeAttribute("disabled");
+
+});
+activeBtn1.addEventListener("click", () => {
   app.showSelectedTasks(TaskStatus.ACTIVE);
-  checkShownTasks(activeTasksBtn, allTasksBtn, finishedTasksBtn);
+  checkShownTasks(activeBtn1, allBtn1, finishedBtn1);
+  inputEl.removeAttribute("disabled");
+
 });
-finishedTasksBtn.addEventListener("click", () => {
+activeBtn2.addEventListener("click", () => {
+  app.showSelectedTasks(TaskStatus.ACTIVE);
+  checkShownTasks(activeBtn2, allBtn2, finishedBtn2);
+  inputEl.removeAttribute("disabled");
+});
+finishedBtn1.addEventListener("click", () => {
   app.showSelectedTasks(TaskStatus.COMPLETED);
-  checkShownTasks(finishedTasksBtn, allTasksBtn, activeTasksBtn);
+  checkShownTasks(finishedBtn1, allBtn1, activeBtn1);
+  inputEl.setAttribute("disabled", "");
+});
+finishedBtn2.addEventListener("click", () => {
+  app.showSelectedTasks(TaskStatus.COMPLETED);
+  checkShownTasks(finishedBtn2, allBtn2, activeBtn2);
+  inputEl.setAttribute("disabled", "");
 });
 
 // Clearing completed tasks

@@ -58,7 +58,8 @@
         </div>
         <form class="section__input-wrapper">
           <div aria-hidden="true" class="input-circle"></div>
-          <input id="task" type="text" placeholder="Create a new todo..." />
+          <!-- <label for="task"></label> -->
+          <input id="task" class="task" type="text" placeholder="Create a new todo..." />
         </form>
         <ul class="section__content"></ul>
         <div class="content__footer">
@@ -77,7 +78,7 @@
         </div>
         <p class="instructions">Drag and drop to reorder</p>
       </section>
-      <div class="landing">
+      <div aria-hidden="true" class="landing">
         <picture>
           <source
             id="mobile-img"
