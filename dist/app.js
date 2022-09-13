@@ -27,7 +27,14 @@ class Task {
     completedTasks = [];
     taskSection = document.querySelector(".section__content");
     visibleTasks = "all";
-    constructor() { }
+    constructor() {
+        const tasks = localStorage.getItem("tasks");
+        if (tasks) {
+            const convertedTasks = JSON.parse(tasks);
+            this.allTasks = convertedTasks;
+            this.showSelectedTasks("all");
+        }
+    }
     createTask(validate) {
         this.allTasks.push({
             taskName: validate.taskName,
@@ -320,4 +327,9 @@ finishedBtn2.addEventListener("click", () => {
 const clearCompletedBtn = document.querySelector(".button-clear");
 clearCompletedBtn.addEventListener("click", () => {
     app.clearCompletedTasks();
+});
+const btn = document.querySelector(".test");
+window.addEventListener("beforeunload", () => {
+    const convertedArr = JSON.stringify(app.allTasks);
+    localStorage.setItem("tasks", convertedArr);
 });

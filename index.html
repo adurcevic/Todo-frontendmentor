@@ -72,19 +72,21 @@
             placeholder="Create a new todo..."
           />
         </form>
-        <ul class="section__content"></ul>
-        <div class="content__footer">
-          <span class="content_footer-items">No tasks</span>
-          <div class="content__footer-states desktop">
+        <div class="shadow">
+          <ul class="section__content"></ul>
+          <div class="content__footer">
+            <span class="content_footer-items">No tasks</span>
+            <div class="content__footer-states desktop">
+              <button class="button-states all active-btn">All</button>
+              <button class="button-states active">Active</button>
+              <button class="button-states completed">Completed</button>
+            </div>
+            <button class="button-clear">Clear completed</button>
+          </div>
+        </div>
+          <div class="content__footer-states mobile">
             <button class="button-states all active-btn">All</button>
             <button class="button-states active">Active</button>
-            <button class="button-states completed">Completed</button>
-          </div>
-          <button class="button-clear">Clear completed</button>
-        </div>
-        <div class="content__footer-states mobile">
-          <button class="button-states all active-btn">All</button>
-          <button class="button-states active">Active</button>
           <button class="button-states completed">Completed</button>
         </div>
         <p class="instructions">Drag and drop to reorder</p>

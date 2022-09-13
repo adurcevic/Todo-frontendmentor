@@ -27,7 +27,7 @@ interface ValidateTask {
 type TaskVisibility = "all" | TaskStatus.ACTIVE | TaskStatus.COMPLETED;
 
 class Task {
-  private allTasks: ValidateTask[] = [];
+  public allTasks: ValidateTask[] = [];
   private activeTasks: ValidateTask[] = [];
   private completedTasks: ValidateTask[] = [];
   private taskSection = document.querySelector(
@@ -35,7 +35,16 @@ class Task {
   ) as HTMLUListElement;
   private visibleTasks: TaskVisibility = "all";
 
-  constructor() {}
+  constructor() {
+    const tasks = localStorage.getItem("tasks");
+
+    if(tasks) {
+    const convertedTasks: ValidateTask[] = JSON.parse(tasks);
+    this.allTasks = convertedTasks;
+    this.showSelectedTasks("all");
+   }
+
+  }
 
   public createTask(validate: ValidateTask) {
     this.allTasks.push({
@@ -394,3 +403,11 @@ const clearCompletedBtn = document.querySelector(
 clearCompletedBtn.addEventListener("click", () => {
   app.clearCompletedTasks();
 });
+
+// Saving tasks in local storage
+const btn = document.querySelector(".test") as HTMLButtonElement;
+
+window.addEventListener("beforeunload", (): void => {
+  const convertedArr: string = JSON.stringify(app.allTasks);
+  localStorage.setItem("tasks", convertedArr);
+})

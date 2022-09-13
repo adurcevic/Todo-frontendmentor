@@ -11,6 +11,7 @@
   --bgBtn-primary: rgb(87, 221, 255);
   --bgBtn-secondary: rgb(192, 88, 243);
   --color-finished: #e4e5f1;
+  --color-shadow: #9394a5;
 }
 
 [data-theme="dark"] {
@@ -20,6 +21,7 @@
   --text-secondary: #cacde8;
   --text-primary: #fafafa;
   --text-secondary-hover: #e4e5f1;
+  --color-shadow: #1d1e21;
 }
 
 [data-theme="dark"]::after {
@@ -215,6 +217,11 @@ label {
   background-color: var(--color-finished);
   top: 50%;
   left: 0%;
+}
+
+.shadow {
+  border-radius: 6px;
+  box-shadow: 0 7px 15px var(--color-shadow);
 }
 
 .content__footer {
