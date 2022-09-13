@@ -1,72 +1,3 @@
-// SWITCHING LIGHT DARK THEME
-type SvgInHtml = HTMLElement & SVGElement;
-
-const themeBtn = document.querySelector(".button-theme") as HTMLButtonElement;
-const root = document.querySelector(":root") as HTMLElement;
-const moonIcon = document.querySelector(".moon-icon") as SvgInHtml;
-const sunIcon = document.querySelector(".sun-icon") as SvgInHtml;
-const mobileImg = document.getElementById("mobile-img") as HTMLSourceElement;
-const desktopImg = document.getElementById("desktop-img") as HTMLSourceElement;
-const image = document.querySelector(".landing__image") as HTMLImageElement;
-
-const changeColors = (...colors: string[]): void => {
-  const [c1, c2, c3, c4, c5, c6] = colors;
-
-  root.style.setProperty("--bg-primary", c1);
-  root.style.setProperty("--color-primary", c2);
-  root.style.setProperty("--color-secondary", c3);
-  root.style.setProperty("--text-primary", c4);
-  root.style.setProperty("--text-secondary", c5);
-  root.style.setProperty("--text-secondary-hover", c6);
-};
-
-const darkTheme = (): void => {
-  changeColors(
-    "#161722",
-    "#25273c",
-    "#4d5066",
-    "#cacde8",
-    "#393a4c",
-    "#e4e5f1"
-  );
-  sunIcon.classList.remove("hidden");
-  moonIcon.classList.add("hidden");
-  mobileImg.setAttribute("srcset", "./images/bg-mobile-dark.jpg");
-  desktopImg.setAttribute("srcset", "./images/bg-desktop-dark.jpg");
-  image.setAttribute("src", "./images/bg-mobile-dark.jpg");
-};
-
-const lightTheme = (): void => {
-  changeColors(
-    "#e4e5f1",
-    "#fafafa",
-    "#e4e5f1",
-    "#484b6a",
-    "#d2d3db",
-    "#9394a5"
-  );
-  sunIcon.classList.add("hidden");
-  moonIcon.classList.remove("hidden");
-  mobileImg.setAttribute("srcset", "./images/bg-mobile-light.jpg");
-  desktopImg.setAttribute("srcset", "./images/bg-desktop-light.jpg");
-  image.setAttribute("src", "./images/bg-mobile-light.jpg");
-};
-
-const switchTheme = (): void => {
-  if (
-    window.getComputedStyle(root).getPropertyValue("--color-primary") ===
-      " #fafafa" ||
-    window.getComputedStyle(root).getPropertyValue("--color-primary") ===
-      "#fafafa"
-  ) {
-    darkTheme();
-  } else {
-    lightTheme();
-  }
-};
-
-themeBtn.addEventListener("click", switchTheme);
-
 // TASK CREATION
 function autobind(_: any, _2: string, descriptor: PropertyDescriptor) {
   const originalMethod = descriptor.value;
@@ -79,6 +10,8 @@ function autobind(_: any, _2: string, descriptor: PropertyDescriptor) {
   };
   return adjDescriptor;
 }
+
+type SvgInHtml = HTMLElement & SVGElement;
 
 enum TaskStatus {
   ACTIVE = "active",
@@ -388,9 +321,10 @@ const inputTask = document.querySelector("form") as HTMLFormElement;
 const inputEl = inputTask.querySelector(".task") as HTMLInputElement;
 
 inputTask.addEventListener("submit", (event: Event) => {
-  event.preventDefault();
-  const taskId = Math.random().toString();
   const inputValue = document.getElementById("task") as HTMLInputElement;
+  event.preventDefault();
+  if(inputValue.value === "") return;
+  const taskId = Math.random().toString();
   app.createTask({
     taskId,
     taskName: inputValue.value,

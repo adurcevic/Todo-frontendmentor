@@ -5,50 +5,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-const themeBtn = document.querySelector(".button-theme");
-const root = document.querySelector(":root");
-const moonIcon = document.querySelector(".moon-icon");
-const sunIcon = document.querySelector(".sun-icon");
-const mobileImg = document.getElementById("mobile-img");
-const desktopImg = document.getElementById("desktop-img");
-const image = document.querySelector(".landing__image");
-const changeColors = (...colors) => {
-    const [c1, c2, c3, c4, c5, c6] = colors;
-    root.style.setProperty("--bg-primary", c1);
-    root.style.setProperty("--color-primary", c2);
-    root.style.setProperty("--color-secondary", c3);
-    root.style.setProperty("--text-primary", c4);
-    root.style.setProperty("--text-secondary", c5);
-    root.style.setProperty("--text-secondary-hover", c6);
-};
-const darkTheme = () => {
-    changeColors("#161722", "#25273c", "#4d5066", "#cacde8", "#393a4c", "#e4e5f1");
-    sunIcon.classList.remove("hidden");
-    moonIcon.classList.add("hidden");
-    mobileImg.setAttribute("srcset", "./images/bg-mobile-dark.jpg");
-    desktopImg.setAttribute("srcset", "./images/bg-desktop-dark.jpg");
-    image.setAttribute("src", "./images/bg-mobile-dark.jpg");
-};
-const lightTheme = () => {
-    changeColors("#e4e5f1", "#fafafa", "#e4e5f1", "#484b6a", "#d2d3db", "#9394a5");
-    sunIcon.classList.add("hidden");
-    moonIcon.classList.remove("hidden");
-    mobileImg.setAttribute("srcset", "./images/bg-mobile-light.jpg");
-    desktopImg.setAttribute("srcset", "./images/bg-desktop-light.jpg");
-    image.setAttribute("src", "./images/bg-mobile-light.jpg");
-};
-const switchTheme = () => {
-    if (window.getComputedStyle(root).getPropertyValue("--color-primary") ===
-        " #fafafa" ||
-        window.getComputedStyle(root).getPropertyValue("--color-primary") ===
-            "#fafafa") {
-        darkTheme();
-    }
-    else {
-        lightTheme();
-    }
-};
-themeBtn.addEventListener("click", switchTheme);
 function autobind(_, _2, descriptor) {
     const originalMethod = descriptor.value;
     const adjDescriptor = {
@@ -308,9 +264,11 @@ const app = new Task();
 const inputTask = document.querySelector("form");
 const inputEl = inputTask.querySelector(".task");
 inputTask.addEventListener("submit", (event) => {
-    event.preventDefault();
-    const taskId = Math.random().toString();
     const inputValue = document.getElementById("task");
+    event.preventDefault();
+    if (inputValue.value === "")
+        return;
+    const taskId = Math.random().toString();
     app.createTask({
         taskId,
         taskName: inputValue.value,

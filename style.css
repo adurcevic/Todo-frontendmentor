@@ -11,12 +11,19 @@
   --bgBtn-primary: rgb(87, 221, 255);
   --bgBtn-secondary: rgb(192, 88, 243);
   --color-finished: #e4e5f1;
-  --mn: #161722;
-  --nm: #25273c;
-  --nn: #cacde8;
-  --mn: #393a4c;
-  --fn: #4d5066;
-  --mn: #e4e5f1;
+}
+
+[data-theme="dark"] {
+  --bg-primary: #161722;
+  --color-primary: #25273c;
+  --color-secondary: #4d5066;
+  --text-secondary: #cacde8;
+  --text-primary: #fafafa;
+  --text-secondary-hover: #e4e5f1;
+}
+
+[data-theme="dark"]::after {
+  background-image: url("./images/bg-mobile-dark.jpg");
 }
 
 * {
@@ -29,6 +36,19 @@ html {
   font-size: 62.5%;
 }
 
+html::after {
+  position: absolute;
+  top: 0;
+  left: 0;
+  content: "";
+  background-image: url("./images/bg-mobile-light.jpg");
+  background-repeat: no-repeat;
+  background-size: cover;
+  min-width: 100%;
+  z-index: -1;
+  height: 200px;
+}
+
 body {
   font-family: var(--font-primary);
   background-color: var(--bg-primary);
@@ -38,6 +58,7 @@ button {
   border: none;
   background-color: transparent;
   cursor: pointer;
+  outline-offset: 4px;
 }
 
 main {
@@ -99,7 +120,7 @@ label {
   color: var(--text-primary);
   font-size: 1.4rem;
   width: 100%;
-  padding: 4px 4px;
+  outline-offset: 4px;
 }
 
 .section__content {
@@ -263,23 +284,23 @@ label {
   font-weight: 700;
 }
 
-.landing {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: -1;
-  width: 100%;
-}
+@media (min-width: 500px) {
+  html::after {
+    background-image: url("./images/bg-desktop-light.jpg");
+  }
 
-.landing__image {
-  object-fit: cover;
-  width: 100%;
-  max-height: 200px;
+  [data-theme="dark"]::after {
+    background-image: url("./images/bg-desktop-dark.jpg");
+  }
 }
 
 @media (min-width: 768px) {
   html {
     font-size: 75%;
+  }
+
+  html::after {
+    height: 250px;
   }
 
   main {
@@ -294,7 +315,6 @@ label {
     margin-bottom: 48px;
   }
 
-  
   .task-row {
     gap: 32px;
     padding: 20px 30px;
@@ -332,11 +352,6 @@ label {
 
   .instructions {
     margin-top: 48px;
-  }
-
-  .landing__image {
-    min-height: 200px;
-    max-height: 250px;
   }
 }
 

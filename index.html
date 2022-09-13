@@ -4,7 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- displays site properly based on user's device -->
-
     <link
       rel="icon"
       type="image/png"
@@ -17,6 +16,7 @@
       href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@400;700&display=swap"
       rel="stylesheet"
     />
+    <script src="./dist/themeSwitching.js" defer></script>
     <script src="./dist/app.js" defer></script>
 
     <title>Frontend Mentor | Todo app</title>
@@ -27,7 +27,13 @@
       <section class="section">
         <div class="section__title-wrapper">
           <h1 class="section__title">Todo</h1>
-          <button class="button-theme" aria-label="switching themes">
+          <button
+            class="button-theme"
+            id="theme-toggle"
+            title="Toggles light & dark"
+            aria-label="auto"
+            aria-live="polite"
+          >
             <svg
               aria-hidden="true"
               class="moon-icon"
@@ -58,8 +64,13 @@
         </div>
         <form class="section__input-wrapper">
           <div aria-hidden="true" class="input-circle"></div>
-          <!-- <label for="task"></label> -->
-          <input id="task" class="task" type="text" placeholder="Create a new todo..." />
+          <label for="task">Create a new todo</label>
+          <input
+            id="task"
+            class="task"
+            type="text"
+            placeholder="Create a new todo..."
+          />
         </form>
         <ul class="section__content"></ul>
         <div class="content__footer">
@@ -78,25 +89,6 @@
         </div>
         <p class="instructions">Drag and drop to reorder</p>
       </section>
-      <div aria-hidden="true" class="landing">
-        <picture>
-          <source
-            id="mobile-img"
-            media="(max-width: 767px)"
-            srcset="./images/bg-mobile-light.jpg"
-          />
-          <source
-            id="desktop-img"
-            media="(min-width: 768px)"
-            srcset="./images/bg-desktop-light.jpg"
-          />
-          <img
-            class="landing__image"
-            src="./images/bg-mobile-light.jpg"
-            alt="lading image"
-          />
-        </picture>
-      </div>
     </main>
   </body>
 </html>
