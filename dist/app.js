@@ -41,46 +41,44 @@ class Task {
             taskId: validate.taskId,
             status: validate.status,
         });
-        const el = this.insertTask({ taskName: validate.taskName,
+        const el = this.insertTask({
+            taskName: validate.taskName,
             taskId: validate.taskId,
-            status: validate.status, });
+            status: validate.status,
+        });
         if (this.visibleTasks === "all") {
             this.taskSection.insertAdjacentHTML("beforeend", el);
-            this.showNumOfTasks(this.allTasks);
-            this.addDraggItems();
         }
         if (this.visibleTasks === TaskStatus.ACTIVE) {
             this.taskSection.insertAdjacentHTML("beforeend", el);
-            const activeTasksArr = this.allTasks.filter(task => task.status === TaskStatus.ACTIVE);
+            const activeTasksArr = this.allTasks.filter((task) => task.status === TaskStatus.ACTIVE);
             this.activeTasks = activeTasksArr;
-            this.showNumOfTasks(this.activeTasks);
-            this.addDraggItems();
         }
+        this.addDraggItems();
+        this.showNumOfTasks();
         const tasksUl = [...this.taskSection.childNodes];
-        const liEl = tasksUl.find(el => el.dataset.taskid === validate.taskId);
+        const liEl = tasksUl.find((el) => el.dataset.taskid === validate.taskId);
         const btnTask = liEl.querySelector(".button-task");
         const btnText = liEl.querySelector(".button-content-text");
         const btnDelete = liEl.querySelector(".button-delete");
-        btnTask.addEventListener("click", this.toggleFinishActiveTask.bind(this));
-        btnText.addEventListener("click", this.toggleFinishActiveTask.bind(this));
-        btnDelete.addEventListener("click", this.deleteTask.bind(this));
+        btnTask.addEventListener("click", this.toggleFinishActiveTask);
+        btnText.addEventListener("click", this.toggleFinishActiveTask);
+        btnDelete.addEventListener("click", this.deleteTask);
     }
     showSelectedTasks(status) {
         if (status === "all") {
             this.filteredTasks(this.allTasks);
-            this.showNumOfTasks(this.allTasks);
         }
         if (status === TaskStatus.ACTIVE) {
             this.filteredTasks(this.activeTasks, TaskStatus.ACTIVE);
-            this.showNumOfTasks(this.activeTasks);
         }
         if (status === TaskStatus.COMPLETED) {
             this.filteredTasks(this.completedTasks, TaskStatus.COMPLETED);
-            this.showNumOfTasks(this.completedTasks);
         }
         if (this.visibleTasks !== status)
             this.visibleTasks = status;
         this.addDraggItems();
+        this.showNumOfTasks();
     }
     clearCompletedTasks() {
         this.completedTasks = [];
@@ -88,26 +86,26 @@ class Task {
         this.allTasks = clearedTasks;
         if (this.visibleTasks === "all") {
             const shownTasks = [...this.taskSection.childNodes];
-            shownTasks.forEach(el => {
+            shownTasks.forEach((el) => {
                 if (el.dataset.status === TaskStatus.COMPLETED)
                     el.remove();
             });
-            this.allTasks = this.allTasks.filter(el => el.status !== TaskStatus.COMPLETED);
-            this.showNumOfTasks(this.allTasks);
+            this.allTasks = this.allTasks.filter((el) => el.status !== TaskStatus.COMPLETED);
         }
+        this.showNumOfTasks();
         if (this.visibleTasks === TaskStatus.COMPLETED)
             this.showSelectedTasks(TaskStatus.COMPLETED);
     }
     insertTask(validate) {
-        return `<li draggable="true" data-status=${validate.status} data-taskId=${validate.taskId} class="task-row">
-    <button id=${validate.status === TaskStatus.ACTIVE ? null : "checked-btn"} class="button-task">
-    <svg id="check-icon" class=${validate.status === TaskStatus.ACTIVE ? "hidden" : null} xmlns="http://www.w3.org/2000/svg" width="11" height="9"><path fill="none" stroke="#FFF" stroke-width="2" d="M1 4.304L3.696 7l6-6"/></svg>
+        return `<li draggable="true" data-status=${validate.status} data-taskId=${validate.taskId} class="task-row" aria-label="${validate.status} task">
+    <button id=${validate.status === TaskStatus.ACTIVE ? null : "checked-btn"} class="button-task" title="change task status" aria-label="${validate.status} task">
+    <svg aria-hidden="true" id="check-icon" class=${validate.status === TaskStatus.ACTIVE ? "hidden" : null} xmlns="http://www.w3.org/2000/svg" width="11" height="9"><path fill="none" stroke="#FFF" stroke-width="2" d="M1 4.304L3.696 7l6-6"/></svg>
     </button>
-    <button id=${validate.status === TaskStatus.ACTIVE ? null : "crossed-text"} class="button-content-text">
+    <button id=${validate.status === TaskStatus.ACTIVE ? null : "crossed-text"} class="button-content-text" title="change task status" aria-label="${validate.status} task">
       <p class="content-text">${validate.taskName}</p>
     </button>
-    <button class="button-delete">
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18">
+    <button class="button-delete" title="delete task">
+      <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="18" height="18">
         <path
           fill="#494C6B"
           fill-rule="evenodd"
@@ -138,9 +136,9 @@ class Task {
         const btnDeleteTask = [
             ...document.querySelectorAll(".button-delete"),
         ];
-        btnCheckTask.forEach(btnEl => btnEl.addEventListener("click", this.toggleFinishActiveTask.bind(this)));
-        btnCheckText.forEach(btnEl => btnEl.addEventListener("click", this.toggleFinishActiveTask.bind(this)));
-        btnDeleteTask.forEach(btnEl => btnEl.addEventListener("click", this.deleteTask.bind(this)));
+        btnCheckTask.forEach((btnEl) => btnEl.addEventListener("click", this.toggleFinishActiveTask));
+        btnCheckText.forEach((btnEl) => btnEl.addEventListener("click", this.toggleFinishActiveTask));
+        btnDeleteTask.forEach((btnEl) => btnEl.addEventListener("click", this.deleteTask));
     }
     addDraggItems() {
         const draggableItems = document.querySelectorAll(".task-row");
@@ -203,16 +201,14 @@ class Task {
         if (this.visibleTasks === "all") {
             this.allTasks = this.allTasks.filter((task) => task.taskId !== id);
             this.allTasks = filteredArr;
-            this.showNumOfTasks(this.allTasks);
         }
         if (this.visibleTasks === TaskStatus.ACTIVE) {
             this.activeTasks = this.activeTasks.filter((task) => task.taskId !== id);
-            this.showNumOfTasks(this.activeTasks);
         }
         if (this.visibleTasks === TaskStatus.COMPLETED) {
             this.completedTasks = this.completedTasks.filter((task) => task.taskId !== id);
-            this.showNumOfTasks(this.completedTasks);
         }
+        this.showNumOfTasks();
     }
     toggleFinishActiveTask(event) {
         const arrEl = event.composedPath();
@@ -222,41 +218,46 @@ class Task {
         const arrOfChildBtnCheck = [...btnCheck.childNodes];
         const checkSvg = arrOfChildBtnCheck.find((el) => el.id === "check-icon");
         const btnCheckText = arrOfChildEl.find((el) => el.className === "button-content-text");
+        const toggleStatusChange = (status) => {
+            liEl.dataset.status = status;
+            liEl.ariaLabel = `${status} task`;
+            btnCheck.ariaLabel = `${status} task`;
+            btnCheckText.ariaLabel = `${status} task`;
+            if (status === TaskStatus.COMPLETED)
+                checkSvg.classList.remove("hidden");
+            if (status === TaskStatus.ACTIVE)
+                checkSvg.classList.add("hidden");
+            btnCheck.id = status === TaskStatus.COMPLETED ? "checked-btn" : "";
+            btnCheckText.id = status === TaskStatus.COMPLETED ? "crossed-text" : "";
+        };
         if (liEl.dataset.status === TaskStatus.ACTIVE) {
-            liEl.dataset.status = TaskStatus.COMPLETED;
-            checkSvg.classList.remove("hidden");
-            btnCheck.id = "checked-btn";
-            btnCheckText.id = "crossed-text";
+            toggleStatusChange(TaskStatus.COMPLETED);
             const task = this.allTasks.find((taskEl) => taskEl.taskId === liEl.dataset.taskid);
             task.status = TaskStatus.COMPLETED;
             if (this.visibleTasks === TaskStatus.ACTIVE) {
                 liEl.remove();
                 const filteredArr = this.activeTasks.filter((task) => task.taskId !== liEl.dataset.taskid);
                 this.activeTasks = filteredArr;
-                this.showNumOfTasks(this.activeTasks);
             }
         }
         else {
-            liEl.dataset.status = TaskStatus.ACTIVE;
-            checkSvg.classList.add("hidden");
-            btnCheck.id = "";
-            btnCheckText.id = "";
+            toggleStatusChange(TaskStatus.ACTIVE);
             const task = this.allTasks.find((task) => task.taskId === liEl.dataset.taskid);
             task.status = TaskStatus.ACTIVE;
             if (this.visibleTasks === TaskStatus.COMPLETED) {
                 liEl.remove();
                 const filteredArr = this.completedTasks.filter((task) => task.taskId !== liEl.dataset.taskid);
                 this.completedTasks = filteredArr;
-                this.showNumOfTasks(this.completedTasks);
             }
         }
+        this.showNumOfTasks();
     }
-    ;
-    showNumOfTasks(wantedTasks) {
+    showNumOfTasks() {
         const itemsLeft = document.querySelector(".content_footer-items");
+        const activeTasks = this.allTasks.filter((tasks) => tasks.status === TaskStatus.ACTIVE);
         itemsLeft.textContent =
-            wantedTasks.length > 0
-                ? `${wantedTasks.length} item${wantedTasks.length === 1 ? "" : "s"} left`
+            activeTasks.length > 0
+                ? `${activeTasks.length} item${activeTasks.length === 1 ? "" : "s"} left`
                 : "No tasks";
         return true;
     }
@@ -283,9 +284,15 @@ inputTask.addEventListener("submit", (event) => {
     });
     inputValue.value = "";
 });
-const [allBtn1, allBtn2] = [...document.querySelectorAll(".all")];
-const [activeBtn1, activeBtn2] = [...document.querySelectorAll(".active")];
-const [finishedBtn1, finishedBtn2] = [...document.querySelectorAll(".completed")];
+const [allBtn1, allBtn2] = [
+    ...document.querySelectorAll(".all"),
+];
+const [activeBtn1, activeBtn2] = [
+    ...document.querySelectorAll(".active"),
+];
+const [finishedBtn1, finishedBtn2] = [
+    ...document.querySelectorAll(".completed"),
+];
 const checkShownTasks = (activeBtn, inactiveBtn1, inactiveBtn2) => {
     if (!activeBtn.classList.contains("active-btn"))
         activeBtn.classList.add("active-btn");

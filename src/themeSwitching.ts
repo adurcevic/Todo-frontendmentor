@@ -1,21 +1,18 @@
 // Switching Light Dark Theme
-const themeBtn = document.querySelector(".button-theme") as HTMLButtonElement;
-const root = document.querySelector(":root") as HTMLElement;
-const moonIcon = document.querySelector(".moon-icon") as SvgInHtml;
-const sunIcon = document.querySelector(".sun-icon") as SvgInHtml;
-const mobileImg = document.getElementById("mobile-img") as HTMLSourceElement;
-const desktopImg = document.getElementById("desktop-img") as HTMLSourceElement;
+let themeBtn: null | HTMLButtonElement;
+let moonIcon: null | SvgInHtml;
+let sunIcon: null | SvgInHtml;
 const storageKey = "theme";
 let theme: { value: string };
 
 const darkTheme = (): void => {
-  sunIcon.classList.remove("hidden");
-  moonIcon.classList.add("hidden");
+  sunIcon!.classList.remove("hidden");
+  moonIcon!.classList.add("hidden");
 };
 
 const lightTheme = (): void => {
-  sunIcon.classList.add("hidden");
-  moonIcon.classList.remove("hidden");
+  sunIcon!.classList.add("hidden");
+  moonIcon!.classList.remove("hidden");
 };
 
 const getColorPreference = (): string => {
@@ -34,9 +31,11 @@ const reflectPreference = (): void => {
     "data-theme",
     theme.value
   );
-  themeBtn.setAttribute("aria-label", theme.value);
-  if (theme.value === "light") lightTheme();
-  if (theme.value === "dark") darkTheme();
+  if(themeBtn) {
+    themeBtn.setAttribute("aria-label", theme.value);
+    if (theme.value === "light") lightTheme();
+    if (theme.value === "dark") darkTheme();
+  }
 };
 
 const setPreference = (): void => {
@@ -53,6 +52,9 @@ reflectPreference();
 
 window.onload = (): void => {
   reflectPreference();
+  themeBtn = document.querySelector(".button-theme") as HTMLButtonElement;
+  moonIcon = document.querySelector(".moon-icon") as SvgInHtml;
+  sunIcon = document.querySelector(".sun-icon") as SvgInHtml;
   themeBtn.addEventListener("click", onClick);
 };
 

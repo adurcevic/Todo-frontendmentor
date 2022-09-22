@@ -38,12 +38,11 @@ class Task {
   constructor() {
     const tasks = localStorage.getItem("tasks");
 
-    if(tasks) {
-    const convertedTasks: ValidateTask[] = JSON.parse(tasks);
-    this.allTasks = convertedTasks;
-    this.showSelectedTasks("all");
-   }
-
+    if (tasks) {
+      const convertedTasks: ValidateTask[] = JSON.parse(tasks);
+      this.allTasks = convertedTasks;
+      this.showSelectedTasks("all");
+    }
   }
 
   public createTask(validate: ValidateTask) {
@@ -52,47 +51,51 @@ class Task {
       taskId: validate.taskId,
       status: validate.status,
     });
-   const el = this.insertTask({ taskName: validate.taskName,
+    const el = this.insertTask({
+      taskName: validate.taskName,
       taskId: validate.taskId,
-      status: validate.status,})
+      status: validate.status,
+    });
 
-      if(this.visibleTasks === "all") {
-        this.taskSection.insertAdjacentHTML("beforeend", el);
-        this.showNumOfTasks(this.allTasks);
-        this.addDraggItems();
-        }
-      if(this.visibleTasks === TaskStatus.ACTIVE) {
-        this.taskSection.insertAdjacentHTML("beforeend", el);
-        const activeTasksArr = this.allTasks.filter(task => task.status === TaskStatus.ACTIVE )
-        this.activeTasks = activeTasksArr
-        this.showNumOfTasks(this.activeTasks);
-        this.addDraggItems();
-        }
-        const tasksUl = [...this.taskSection.childNodes] as HTMLElement[];
-        const liEl = tasksUl.find(el => el.dataset.taskid === validate.taskId) as HTMLLIElement;
-        const btnTask = liEl.querySelector(".button-task") as HTMLButtonElement;
-        const btnText = liEl.querySelector(".button-content-text") as HTMLButtonElement;
-        const btnDelete = liEl.querySelector(".button-delete") as HTMLButtonElement;
-        btnTask.addEventListener("click", this.toggleFinishActiveTask.bind(this));
-        btnText.addEventListener("click", this.toggleFinishActiveTask.bind(this));
-        btnDelete.addEventListener("click", this.deleteTask.bind(this));
+    if (this.visibleTasks === "all") {
+      this.taskSection.insertAdjacentHTML("beforeend", el);
+    }
+    if (this.visibleTasks === TaskStatus.ACTIVE) {
+      this.taskSection.insertAdjacentHTML("beforeend", el);
+      const activeTasksArr = this.allTasks.filter(
+        (task) => task.status === TaskStatus.ACTIVE
+      );
+      this.activeTasks = activeTasksArr;
+    }
+    this.addDraggItems();
+    this.showNumOfTasks();
+    const tasksUl = [...this.taskSection.childNodes] as HTMLElement[];
+    const liEl = tasksUl.find(
+      (el) => el.dataset.taskid === validate.taskId
+    ) as HTMLLIElement;
+    const btnTask = liEl.querySelector(".button-task") as HTMLButtonElement;
+    const btnText = liEl.querySelector(
+      ".button-content-text"
+    ) as HTMLButtonElement;
+    const btnDelete = liEl.querySelector(".button-delete") as HTMLButtonElement;
+    btnTask.addEventListener("click", this.toggleFinishActiveTask);
+    btnText.addEventListener("click", this.toggleFinishActiveTask);
+    btnDelete.addEventListener("click", this.deleteTask);
   }
 
   public showSelectedTasks(status: TaskVisibility) {
     if (status === "all") {
       this.filteredTasks(this.allTasks);
-      this.showNumOfTasks(this.allTasks);
     }
     if (status === TaskStatus.ACTIVE) {
       this.filteredTasks(this.activeTasks, TaskStatus.ACTIVE);
-      this.showNumOfTasks(this.activeTasks);
     }
     if (status === TaskStatus.COMPLETED) {
       this.filteredTasks(this.completedTasks, TaskStatus.COMPLETED);
-      this.showNumOfTasks(this.completedTasks);
     }
     if (this.visibleTasks !== status) this.visibleTasks = status;
     this.addDraggItems();
+    this.showNumOfTasks();
   }
 
   public clearCompletedTasks() {
@@ -102,35 +105,41 @@ class Task {
     );
     this.allTasks = clearedTasks;
     if (this.visibleTasks === "all") {
-     const shownTasks = [...this.taskSection.childNodes] as HTMLElement[];
-     shownTasks.forEach(el => {
-      if(el.dataset.status === TaskStatus.COMPLETED) el.remove();
-     })
-     this.allTasks = this.allTasks.filter(el => el.status !== TaskStatus.COMPLETED);
-     this.showNumOfTasks(this.allTasks);
+      const shownTasks = [...this.taskSection.childNodes] as HTMLElement[];
+      shownTasks.forEach((el) => {
+        if (el.dataset.status === TaskStatus.COMPLETED) el.remove();
+      });
+      this.allTasks = this.allTasks.filter(
+        (el) => el.status !== TaskStatus.COMPLETED
+      );
     }
+    this.showNumOfTasks();
     if (this.visibleTasks === TaskStatus.COMPLETED)
       this.showSelectedTasks(TaskStatus.COMPLETED);
   }
 
   private insertTask(validate: ValidateTask): any {
-    return `<li draggable="true" data-status=${
-      validate.status
-    } data-taskId=${validate.taskId} class="task-row">
+    return `<li draggable="true" data-status=${validate.status} data-taskId=${
+      validate.taskId
+    } class="task-row" aria-label="${validate.status} task">
     <button id=${
       validate.status === TaskStatus.ACTIVE ? null : "checked-btn"
-    } class="button-task">
-    <svg id="check-icon" class=${
+    } class="button-task" title="change task status" aria-label="${
+      validate.status
+    } task">
+    <svg aria-hidden="true" id="check-icon" class=${
       validate.status === TaskStatus.ACTIVE ? "hidden" : null
     } xmlns="http://www.w3.org/2000/svg" width="11" height="9"><path fill="none" stroke="#FFF" stroke-width="2" d="M1 4.304L3.696 7l6-6"/></svg>
     </button>
     <button id=${
       validate.status === TaskStatus.ACTIVE ? null : "crossed-text"
-    } class="button-content-text">
+    } class="button-content-text" title="change task status" aria-label="${
+      validate.status
+    } task">
       <p class="content-text">${validate.taskName}</p>
     </button>
-    <button class="button-delete">
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18">
+    <button class="button-delete" title="delete task">
+      <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="18" height="18">
         <path
           fill="#494C6B"
           fill-rule="evenodd"
@@ -164,15 +173,21 @@ class Task {
     this.taskSection.innerHTML = tasksArr.toString().replaceAll(",", "");
     const btnCheckTask: any[] = [...document.querySelectorAll(".button-task")];
     const btnCheckText: any[] = [
-    ...document.querySelectorAll(".button-content-text"),
-  ];
-  const btnDeleteTask: any[] = [
-    ...document.querySelectorAll(".button-delete"),
-  ];
+      ...document.querySelectorAll(".button-content-text"),
+    ];
+    const btnDeleteTask: any[] = [
+      ...document.querySelectorAll(".button-delete"),
+    ];
 
-  btnCheckTask.forEach(btnEl => btnEl.addEventListener("click", this.toggleFinishActiveTask.bind(this)))
-  btnCheckText.forEach(btnEl => btnEl.addEventListener("click", this.toggleFinishActiveTask.bind(this)))
-  btnDeleteTask.forEach(btnEl => btnEl.addEventListener("click", this.deleteTask.bind(this)))
+    btnCheckTask.forEach((btnEl) =>
+      btnEl.addEventListener("click", this.toggleFinishActiveTask)
+    );
+    btnCheckText.forEach((btnEl) =>
+      btnEl.addEventListener("click", this.toggleFinishActiveTask)
+    );
+    btnDeleteTask.forEach((btnEl) =>
+      btnEl.addEventListener("click", this.deleteTask)
+    );
   }
 
   private addDraggItems(): void {
@@ -244,78 +259,89 @@ class Task {
     liEl.remove();
     if (this.visibleTasks === "all") {
       this.allTasks = this.allTasks.filter((task) => task.taskId !== id);
-    this.allTasks = filteredArr;
-      this.showNumOfTasks(this.allTasks);
+      this.allTasks = filteredArr;
     }
-    if (this.visibleTasks === TaskStatus.ACTIVE) { 
+    if (this.visibleTasks === TaskStatus.ACTIVE) {
       this.activeTasks = this.activeTasks.filter((task) => task.taskId !== id);
-      this.showNumOfTasks(this.activeTasks);
     }
     if (this.visibleTasks === TaskStatus.COMPLETED) {
-      this.completedTasks = this.completedTasks.filter((task) => task.taskId !== id);
-      this.showNumOfTasks(this.completedTasks);
+      this.completedTasks = this.completedTasks.filter(
+        (task) => task.taskId !== id
+      );
+    }
+    this.showNumOfTasks();
   }
-}
 
-@autobind
+  @autobind
   private toggleFinishActiveTask(event: Event): void {
-      const arrEl: any[] = event.composedPath();
-      const liEl = arrEl.find(
-        (el) => el.className === "task-row"
-      ) as HTMLLIElement;
-      const arrOfChildEl = [...liEl.childNodes] as HTMLElement[];
-      const btnCheck = arrOfChildEl.find(
-        (el) => el.className === "button-task"
-      ) as HTMLButtonElement;
-      const arrOfChildBtnCheck = [...btnCheck.childNodes] as HTMLElement[];
-      const checkSvg = arrOfChildBtnCheck.find(
-        (el) => el.id === "check-icon"
-      ) as SvgInHtml;
-      const btnCheckText = arrOfChildEl.find(
-        (el) => el.className === "button-content-text"
-      ) as HTMLButtonElement;
-      if (liEl.dataset.status === TaskStatus.ACTIVE) {
-        liEl.dataset.status = TaskStatus.COMPLETED;
-        checkSvg.classList.remove("hidden");
-        btnCheck.id = "checked-btn";
-        btnCheckText.id = "crossed-text";
-        const task = this.allTasks.find(
-          (taskEl) => taskEl.taskId === liEl.dataset.taskid
-        ) as ValidateTask;
-        task.status = TaskStatus.COMPLETED;
-        if (this.visibleTasks === TaskStatus.ACTIVE) {  
-          liEl.remove();
-          const filteredArr = this.activeTasks.filter((task) => task.taskId !== liEl.dataset.taskid);
-          this.activeTasks = filteredArr;
-          this.showNumOfTasks(this.activeTasks);
-        }
-      } else  {
-        liEl.dataset.status = TaskStatus.ACTIVE;
-        checkSvg.classList.add("hidden");
-        btnCheck.id = "";
-        btnCheckText.id = "";
-        const task = this.allTasks.find(
-          (task) => task.taskId === liEl.dataset.taskid
-        ) as ValidateTask;
-        task.status = TaskStatus.ACTIVE;
-        if (this.visibleTasks === TaskStatus.COMPLETED) {  
-          liEl.remove();
-          const filteredArr = this.completedTasks.filter((task) => task.taskId !== liEl.dataset.taskid);
-          this.completedTasks = filteredArr;
-          this.showNumOfTasks(this.completedTasks);
-        }
-      }
+    const arrEl: any[] = event.composedPath();
+    const liEl = arrEl.find(
+      (el) => el.className === "task-row"
+    ) as HTMLLIElement;
+    const arrOfChildEl = [...liEl.childNodes] as HTMLElement[];
+    const btnCheck = arrOfChildEl.find(
+      (el) => el.className === "button-task"
+    ) as HTMLButtonElement;
+    const arrOfChildBtnCheck = [...btnCheck.childNodes] as HTMLElement[];
+    const checkSvg = arrOfChildBtnCheck.find(
+      (el) => el.id === "check-icon"
+    ) as SvgInHtml;
+    const btnCheckText = arrOfChildEl.find(
+      (el) => el.className === "button-content-text"
+    ) as HTMLButtonElement;
 
+    const toggleStatusChange = (status: TaskStatus) => {
+      liEl.dataset.status = status;
+      liEl.ariaLabel = `${status} task`;
+      btnCheck.ariaLabel = `${status} task`;
+      btnCheckText.ariaLabel = `${status} task`;
+      if (status === TaskStatus.COMPLETED) checkSvg.classList.remove("hidden");
+      if (status === TaskStatus.ACTIVE) checkSvg.classList.add("hidden");
+      btnCheck.id = status === TaskStatus.COMPLETED ? "checked-btn" : "";
+      btnCheckText.id = status === TaskStatus.COMPLETED ? "crossed-text" : "";
     };
 
-  private showNumOfTasks(wantedTasks: ValidateTask[]): boolean {
+    if (liEl.dataset.status === TaskStatus.ACTIVE) {
+      toggleStatusChange(TaskStatus.COMPLETED);
+      const task = this.allTasks.find(
+        (taskEl) => taskEl.taskId === liEl.dataset.taskid
+      ) as ValidateTask;
+      task.status = TaskStatus.COMPLETED;
+      if (this.visibleTasks === TaskStatus.ACTIVE) {
+        liEl.remove();
+        const filteredArr = this.activeTasks.filter(
+          (task) => task.taskId !== liEl.dataset.taskid
+        );
+        this.activeTasks = filteredArr;
+      }
+    } else {
+      toggleStatusChange(TaskStatus.ACTIVE);
+      const task = this.allTasks.find(
+        (task) => task.taskId === liEl.dataset.taskid
+      ) as ValidateTask;
+      task.status = TaskStatus.ACTIVE;
+      if (this.visibleTasks === TaskStatus.COMPLETED) {
+        liEl.remove();
+        const filteredArr = this.completedTasks.filter(
+          (task) => task.taskId !== liEl.dataset.taskid
+        );
+        this.completedTasks = filteredArr;
+      }
+    }
+    this.showNumOfTasks();
+  }
+
+  private showNumOfTasks(): boolean {
     const itemsLeft = document.querySelector(
       ".content_footer-items"
     ) as HTMLSpanElement;
+    const activeTasks = this.allTasks.filter(
+      (tasks) => tasks.status === TaskStatus.ACTIVE
+    );
     itemsLeft.textContent =
-      wantedTasks.length > 0
-        ? `${wantedTasks.length} item${
-            wantedTasks.length === 1 ? "" : "s"
+      activeTasks.length > 0
+        ? `${activeTasks.length} item${
+            activeTasks.length === 1 ? "" : "s"
           } left`
         : "No tasks";
 
@@ -332,7 +358,7 @@ const inputEl = inputTask.querySelector(".task") as HTMLInputElement;
 inputTask.addEventListener("submit", (event: Event) => {
   const inputValue = document.getElementById("task") as HTMLInputElement;
   event.preventDefault();
-  if(inputValue.value === "") return;
+  if (inputValue.value === "") return;
   const taskId = Math.random().toString();
   app.createTask({
     taskId,
@@ -343,25 +369,28 @@ inputTask.addEventListener("submit", (event: Event) => {
 });
 
 // Showing different tasks
-const [allBtn1, allBtn2] = [...document.querySelectorAll(".all")] as HTMLButtonElement[];
-const [activeBtn1, activeBtn2] = [...document.querySelectorAll(".active")] as HTMLButtonElement[];
-const [finishedBtn1, finishedBtn2] = [...document.querySelectorAll(
-  ".completed"
-)] as HTMLButtonElement[];
+const [allBtn1, allBtn2] = [
+  ...document.querySelectorAll(".all"),
+] as HTMLButtonElement[];
+const [activeBtn1, activeBtn2] = [
+  ...document.querySelectorAll(".active"),
+] as HTMLButtonElement[];
+const [finishedBtn1, finishedBtn2] = [
+  ...document.querySelectorAll(".completed"),
+] as HTMLButtonElement[];
 
 const checkShownTasks = (
   activeBtn: HTMLButtonElement,
   inactiveBtn1: HTMLButtonElement,
-  inactiveBtn2: HTMLButtonElement) =>
-{
+  inactiveBtn2: HTMLButtonElement
+) => {
   if (!activeBtn.classList.contains("active-btn"))
     activeBtn.classList.add("active-btn");
   if (inactiveBtn1.classList.contains("active-btn"))
     inactiveBtn1.classList.remove("active-btn");
-    if (inactiveBtn2.classList.contains("active-btn"))
-      inactiveBtn2.classList.remove("active-btn");
+  if (inactiveBtn2.classList.contains("active-btn"))
+    inactiveBtn2.classList.remove("active-btn");
 };
-
 
 allBtn1.addEventListener("click", () => {
   app.showSelectedTasks("all");
@@ -372,13 +401,11 @@ allBtn2.addEventListener("click", () => {
   app.showSelectedTasks("all");
   checkShownTasks(allBtn2, activeBtn2, finishedBtn2);
   inputEl.removeAttribute("disabled");
-
 });
 activeBtn1.addEventListener("click", () => {
   app.showSelectedTasks(TaskStatus.ACTIVE);
   checkShownTasks(activeBtn1, allBtn1, finishedBtn1);
   inputEl.removeAttribute("disabled");
-
 });
 activeBtn2.addEventListener("click", () => {
   app.showSelectedTasks(TaskStatus.ACTIVE);
@@ -410,4 +437,4 @@ const btn = document.querySelector(".test") as HTMLButtonElement;
 window.addEventListener("beforeunload", (): void => {
   const convertedArr: string = JSON.stringify(app.allTasks);
   localStorage.setItem("tasks", convertedArr);
-})
+});

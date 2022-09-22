@@ -1,10 +1,7 @@
 "use strict";
-const themeBtn = document.querySelector(".button-theme");
-const root = document.querySelector(":root");
-const moonIcon = document.querySelector(".moon-icon");
-const sunIcon = document.querySelector(".sun-icon");
-const mobileImg = document.getElementById("mobile-img");
-const desktopImg = document.getElementById("desktop-img");
+let themeBtn;
+let moonIcon;
+let sunIcon;
 const storageKey = "theme";
 let theme;
 const darkTheme = () => {
@@ -26,11 +23,13 @@ const getColorPreference = () => {
 theme = { value: getColorPreference() };
 const reflectPreference = () => {
     document.firstElementChild.setAttribute("data-theme", theme.value);
-    themeBtn.setAttribute("aria-label", theme.value);
-    if (theme.value === "light")
-        lightTheme();
-    if (theme.value === "dark")
-        darkTheme();
+    if (themeBtn) {
+        themeBtn.setAttribute("aria-label", theme.value);
+        if (theme.value === "light")
+            lightTheme();
+        if (theme.value === "dark")
+            darkTheme();
+    }
 };
 const setPreference = () => {
     localStorage.setItem(storageKey, theme.value);
@@ -43,6 +42,9 @@ const onClick = () => {
 reflectPreference();
 window.onload = () => {
     reflectPreference();
+    themeBtn = document.querySelector(".button-theme");
+    moonIcon = document.querySelector(".moon-icon");
+    sunIcon = document.querySelector(".sun-icon");
     themeBtn.addEventListener("click", onClick);
 };
 window

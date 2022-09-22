@@ -61,6 +61,7 @@ button {
   background-color: transparent;
   cursor: pointer;
   outline-offset: 4px;
+  touch-action: manipulation;
 }
 
 main {
